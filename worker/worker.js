@@ -6,21 +6,21 @@ const authConfig = {
   "client_secret": typeof CLIENT_SECRET !== "undefined" ? CLIENT_SECRET : process.env.CLIENT_SECRET,
   "refresh_token": typeof REFRESH_TOKEN !== "undefined" ? REFRESH_TOKEN : process.env.REFRESH_TOKEN,
   /**
-   * Set up multiple Drives to be displayed; add multiples by format
-   * [id]: It can be team folder id, subfolder id, or "root" (representing the root directory of personal disk);
- * [name]: the displayed name
- * [user]: Basic Auth username
- * [pass]: Basic Auth password
- * [protect_file_link]: Whether Basic Auth is used to protect the file link, the default value (when not set) is false, that is, the file link is not protected (convenient for straight chain download / external playback, etc.)
- * Basic Auth of each folder can be set separately. Basic Auth protects all folders / subfolders in the disk by default
- * [Note] By default, the file link is not protected, which can facilitate straight-chain download / external playback;
- * If you want to protect the file link, you need to set protect_file_link to true. At this time, if you want to perform external playback and other operations, you need to replace host with user: pass @ host
- * No need for Basic Auth folder, just keep user and pass empty at the same time. (No need to set it directly)
- * [Note] For the folder whose id is set to the subfolder id, the search function will not be supported (it does not affect other disks).
- **/
+   * Görüntülenecek birden fazla Drive yapılandırın; aşağıdaki biçimde birden fazla ekleyin
+   * [id]: Ekip klasörü kimliği (team folder id), alt klasör kimliği (subfolder id) veya "root" (kişisel diskin kök dizinini temsil eder) olabilir;
+   * [name]: Görüntülenen ad
+   * [user]: Temel Kimlik Doğrulama (Basic Auth) kullanıcı adı
+   * [pass]: Temel Kimlik Doğrulama (Basic Auth) şifresi
+   * [protect_file_link]: Dosya bağlantısını korumak için Temel Kimlik Doğrulama kullanılıp kullanılmayacağı. Varsayılan değer (ayarlanmadığında) false'tur, yani dosya bağlantısı korunmaz (doğrudan indirme / harici oynatma vb. için kolaylık sağlar)
+   * Her klasörün Temel Kimlik Doğrulaması ayrı ayrı ayarlanabilir. Temel Kimlik Doğrulama, varsayılan olarak diskteki tüm klasörleri / alt klasörleri korur
+   * [Not] Varsayılan olarak dosya bağlantısı korunmaz, bu da doğrudan indirmeyi / harici oynatmayı kolaylaştırabilir;
+   * Dosya bağlantısını korumak istiyorsanız protect_file_link değerini true olarak ayarlamanız gerekir. Bu durumda, harici oynatma ve diğer işlemleri gerçekleştirmek istiyorsanız host bilgisini kullanıcı:şifre@host şeklinde değiştirmeniz gerekir
+   * Temel Kimlik Doğrulama gerektirmeyen klasörler için kullanıcı ve şifreyi aynı anda boş bırakmanız yeterlidir. (Doğrudan ayarlamaya gerek yoktur)
+   * [Not] Kimliği alt klasör kimliği olarak ayarlanan klasörler için arama işlevi desteklenmeyecektir (diğer diskleri etkilemez).
+   **/
   "roots": [
     {
-      id: "root", //you can use folderid other than root but then search wont work
+      id: "root", // root dışında bir klasör kimliği (folderid) kullanabilirsiniz ancak bu durumda arama çalışmaz
       name: "TXDrive",
     },
   ],
@@ -32,11 +32,11 @@ const authConfig = {
 };
 
 /**
- * web ui 
+ * web arayüzü 
  */
 const uiConfig = {
-  "theme": "material", // DO NOT set it to classic
-  "dark_mode": false,  // DO NOT set it to true, Not working yet
+  "theme": "material", // "classic" olarak ayarlamayın
+  "dark_mode": false,  // true olarak ayarlamayın, henüz çalışmıyor
   "main_color": "blue-grey",
   "accent_color": "blue",
   "fluid_navigation_bar": false,
@@ -45,7 +45,7 @@ const uiConfig = {
 };
 
 /**
- * global functions
+ * genel fonksiyonlar
  */
 const FUNCS = {
   formatSearchKeyword: function (keyword) {
@@ -60,7 +60,7 @@ const FUNCS = {
 };
 
 /**
- * global consts
+ * genel sabitler (consts)
  * @type {{folder_mime_type: string, default_file_fields: string, gd_root_type: {share_drive: number, user_drive: number, sub_folder: number}}}
  */
 const CONSTS = new (class {
@@ -74,7 +74,7 @@ const CONSTS = new (class {
 })();
 
 
-// gd instances
+// gd örnekleri (instances)
 var gds = [];
 
 function html(current_drive_order = 0, model = {}) {
@@ -105,7 +105,7 @@ addEventListener('fetch', event => {
 });
 
 /**
- * Fetch and log a request
+ * Bir isteği al (fetch) ve günlüğe kaydet (log)
  * @param {Request} request
  */
 async function handleRequest(request) {
@@ -115,7 +115,7 @@ async function handleRequest(request) {
       await gd.init();
       gds.push(gd)
     }
-    // This operation is parallel to improve efficiency
+    // Verimliliği artırmak için bu işlem paralel olarak yürütülür
     let tasks = [];
     gds.forEach(gd => {
       tasks.push(gd.initRootType());
@@ -125,14 +125,14 @@ async function handleRequest(request) {
     }
   }
 
-  // Extract drive order from path
-  // And get the corresponding gd instance according to drive order
+  // Yoldan (path) drive sırasını çıkarın
+  // Ve drive sırasına göre karşılık gelen gd örneğini alın
   let gd;
   let url = new URL(request.url);
   let path = url.pathname;
 
   /**
-   * Redirect to start page
+   * Başlangıç sayfasına yönlendir
    * @returns {Response}
    */
   function redirectToIndexPage() {
@@ -141,11 +141,11 @@ async function handleRequest(request) {
 
   if (path == '/') return redirectToIndexPage();
   if (path.toLowerCase() == '/favicon.ico') {
-    // You can find a favicon later
+    // Daha sonra bir favicon bulabilirsiniz
     return new Response('', {status: 404})
   }
 
-  // Special command format
+  // Özel komut formatı
   const command_reg = /^\/(?<num>\d+):(?<command>[a-zA-Z0-9]+)$/g;
   const match = command_reg.exec(path);
   if (match) {
@@ -156,17 +156,17 @@ async function handleRequest(request) {
     } else {
       return redirectToIndexPage()
     }
-    // basic auth
+    // temel kimlik doğrulama (basic auth)
     for (const r = gd.basicAuthResponse(request); r;) return r;
     const command = match.groups.command;
-    // search for
+    // arama yap
     if (command === 'search') {
       if (request.method === 'POST') {
-        // search results
+        // arama sonuçları
         return handleSearch(request, gd);
       } else {
         const params = url.searchParams;
-        // Search page
+        // Arama sayfası
         return new Response(html(gd.order, {
             q: params.get("q") || '',
             is_search_page: true,
@@ -182,7 +182,7 @@ async function handleRequest(request) {
     }
   }
 
-  // Expected path format
+  // Beklenen yol (path) formatı
   const common_reg = /^\/\d+:\/.*$/g;
   try {
     if (!path.match(common_reg)) {
@@ -199,7 +199,7 @@ async function handleRequest(request) {
     return redirectToIndexPage()
   }
 
-  // basic auth
+  // temel kimlik doğrulama (basic auth)
   // for (const r = gd.basicAuthResponse(request); r;) return r;
   const basic_auth_res = gd.basicAuthResponse(request);
 
@@ -237,10 +237,10 @@ async function apiRequest(request, gd) {
 
   if (path.substr(-1) == '/') {
     let form = await request.formData();
-    // This can increase the speed when listing the directory for the first time. The disadvantage is that if password verification fails, the overhead of listing directories will still be incurred
+    // Bu, dizini ilk kez listelerken hızı artırabilir. Dezavantajı ise, şifre doğrulaması başarısız olursa, dizin listeleme maliyetinin yine de oluşacak olmasıdır
     let deferred_list_result = gd.list(path, form.get('page_token'), Number(form.get('page_index')));
 
-    // check .password file, if `enable_password_file_verify` is true
+    // `enable_password_file_verify` true ise .password dosyasını kontrol edin
     if (authConfig['enable_password_file_verify']) {
       let password = await gd.password(path);
       // console.log("dir password", password);
@@ -259,7 +259,7 @@ async function apiRequest(request, gd) {
   }
 }
 
-// Processing search
+// Arama işlemi yürütülüyor
 async function handleSearch(request, gd) {
   const option = {status: 200, headers: {'Access-Control-Allow-Origin': '*'}};
   let form = await request.formData();
@@ -269,10 +269,10 @@ async function handleSearch(request, gd) {
 }
 
 /**
- * Handle id2path
- * @param request 需要 id 参数
+ * id2path işlemini gerçekleştir
+ * @param request id parametresi gerektirir
  * @param gd
- * @returns {Promise<Response>} [Note] If the item represented by the id received from the front desk is not under the target gd disk, the response will return an empty string to the front desk""
+ * @returns {Promise<Response>} [Not] Ön yüzden alınan id'nin temsil ettiği öğe hedef gd diski altında değilse, ön yüze boş bir dize "" döndürülür
  */
 async function handleId2Path(request, gd) {
   const option = {status: 200, headers: {'Access-Control-Allow-Origin': '*'}};
@@ -283,20 +283,20 @@ async function handleId2Path(request, gd) {
 
 class googleDrive {
   constructor(authConfig, order) {
-    // Each disk corresponds to an order, corresponding to a gd instance
+    // Her disk bir sıraya (order) ve dolayısıyla bir gd örneğine (instance) karşılık gelir
     this.order = order;
     this.root = authConfig.roots[order];
     this.root.protect_file_link = this.root.protect_file_link || false;
     this.url_path_prefix = `/${order}:`;
     this.authConfig = authConfig;
-    // TODO: These cache invalidation refresh strategies can be formulated later
-    // path id
+    // TODO: Bu önbellek geçersiz kılma/yenileme stratejileri daha sonra oluşturulabilir
+    // yol (path) id'si
     this.paths = [];
-    // path file
+    // yol (path) dosyası
     this.files = [];
-    // path pass
+    // yol (path) şifresi
     this.passwords = [];
-    // id <-> path
+    // id <-> yol (path)
     this.id_path_cache = {};
     this.id_path_cache[this.root['id']] = '/';
     this.paths["/"] = this.root['id'];
@@ -307,20 +307,20 @@ class googleDrive {
   }
 
   /**
-   * Initial authorization; then obtain user_drive_real_root_id
+   * İlk yetkilendirme; ardından user_drive_real_root_id bilgisini al
    * @returns {Promise<void>}
    */
   async init() {
     await this.accessToken();
     /*await (async () => {
-        // Only get 1 time
+        // Sadece 1 kez al
         if (authConfig.user_drive_real_root_id) return;
         const root_obj = await (gds[0] || this).findItemById('root');
         if (root_obj && root_obj.id) {
             authConfig.user_drive_real_root_id = root_obj.id
         }
     })();*/
-    // Wait for user_drive_real_root_id, only get 1 time
+    // user_drive_real_root_id için bekle, sadece 1 kez al
     if (authConfig.user_drive_real_root_id) return;
     const root_obj = await (gds[0] || this).findItemById('root');
     if (root_obj && root_obj.id) {
@@ -329,7 +329,7 @@ class googleDrive {
   }
 
   /**
-   * Get the root directory type, set to root_type
+   * Kök dizin türünü al ve root_type olarak ayarla
    * @returns {Promise<void>}
    */
   async initRootType() {
@@ -344,7 +344,7 @@ class googleDrive {
   }
 
   /**
-   * Returns a response that requires authorization, or null
+   * Yetkilendirme gerektiren bir yanıt veya null döndürür
    * @param request
    * @returns {Response|null}
    */
@@ -406,7 +406,7 @@ class googleDrive {
     return obj.files[0];
   }
 
-  // Cache through reqeust cache
+  // İstek önbelleği (request cache) aracılığıyla önbelleğe al
   async list(path, page_token = null, page_index = 0) {
     if (this.path_children_cache == undefined) {
       // { <path> :[ {nextPageToken:'',data:{}}, {nextPageToken:'',data:{}} ...], ...}
@@ -428,7 +428,7 @@ class googleDrive {
     let id = await this.findPathId(path);
     let result = await this._ls(id, page_token, page_index);
     let data = result.data;
-    // Cache for multiple pages
+    // Birden çok sayfa için önbelleğe al
     if (result.nextPageToken && data.files) {
       if (!Array.isArray(this.path_children_cache[path])) {
         this.path_children_cache[path] = []
@@ -508,9 +508,9 @@ class googleDrive {
 
 
   /**
-   * Get share drive information by id
+   * Kimliğe (id) göre paylaşılan drive bilgilerini al
    * @param any_id
-   * @returns {Promise<null|{id}|any>} Any abnormal situation returns null
+   * @returns {Promise<null|{id}|any>} Herhangi bir anormal durumda null döndürür
    */
   async getShareDriveObjById(any_id) {
     if (!any_id) return null;
@@ -527,7 +527,7 @@ class googleDrive {
 
 
   /**
-   * search for
+   * Arama yap
    * @returns {Promise<{data: null, nextPageToken: null, curPageIndex: number}>}
    */
   async search(origin_keyword, page_token = null, page_index = 0) {
@@ -546,13 +546,13 @@ class googleDrive {
     }
     let keyword = FUNCS.formatSearchKeyword(origin_keyword);
     if (!keyword) {
-      // Keyword is empty, return
+      // Anahtar kelime boş, geri dön
       return empty_result;
     }
     let words = keyword.split(/\s+/);
     let name_search_str = `name contains '${words.join("' AND name contains '")}'`;
 
-    // For corpora, user is a personal disk, and drive is a team disk. Match driveId
+    // Corpora için user kişisel disktir ve drive ise ekip diskidir. driveId ile eşleştirin
     let params = {};
     if (is_user_drive) {
       params.corpora = 'user'
@@ -560,7 +560,7 @@ class googleDrive {
     if (is_share_drive) {
       params.corpora = 'drive';
       params.driveId = this.root.id;
-      // This parameter will only be effective until June 1, 2020. Afterwards shared drive items will be included in the results.
+      // Bu parametre yalnızca 1 Haziran 2020 tarihine kadar geçerli olacaktır. Sonrasında paylaşılan drive öğeleri sonuçlara dahil edilecektir.
       params.includeItemsFromAllDrives = true;
       params.supportsAllDrives = true;
     }
@@ -588,10 +588,10 @@ class googleDrive {
 
 
   /**
-   * Get the file object of the parent folder of this file or folder one by one upwards. Note: it will be slow! ! !
-   * Find up to the root directory of the current gd object (root id)
-   * Only consider a single upward chain.
-   * [Note] If the item represented by this id is not in the target gd disk, then this function will return null
+   * Bu dosya veya klasörün üst klasörünün dosya nesnesini tek tek yukarı doğru alın. Not: Yavaş olacaktır! ! !
+   * Mevcut gd nesnesinin kök dizinine (root id) kadar bulun
+   * Yalnızca tek bir yukarı doğru zinciri dikkate alın.
+   * [Not] Bu id ile temsil edilen öğe hedef gd diskinde değilse, bu fonksiyon null döndürür
    *
    * @param child_id
    * @param contain_myself
@@ -603,7 +603,7 @@ class googleDrive {
     const user_drive_real_root_id = authConfig.user_drive_real_root_id;
     const is_user_drive = gd.root_type === CONSTS.gd_root_type.user_drive;
 
-    // End goal id for bottom-up query
+    // Aşağıdan yukarıya sorgulama için bitiş hedefi id'si
     const target_top_id = is_user_drive ? user_drive_real_root_id : gd_root_id;
     const fields = CONSTS.default_file_fields;
 
@@ -619,7 +619,7 @@ class googleDrive {
       // ['','',...]
       let p_ids = file_obj.parents;
       if (p_ids && p_ids.length > 0) {
-        // its first parent
+        // ilk üst öğesi (parent)
         const first_p_id = p_ids[0];
         if (first_p_id === target_top_id) {
           meet_top = true;
@@ -643,9 +643,9 @@ class googleDrive {
   }
 
   /**
-   * Get the path relative to the root directory of the disk
+   * Diskin kök dizinine göreceli yolu alın
    * @param child_id
-   * @returns {Promise<string>} [Note] If the item represented by this id is not under the target gd disk, then this method will return an empty string ""
+   * @returns {Promise<string>} [Not] Bu kimlikle (id) temsil edilen öğe hedef gd diski altında değilse, bu yöntem boş bir dize "" döndürür
    */
   async findPathById(child_id) {
     if (this.id_path_cache[child_id]) {
@@ -656,7 +656,7 @@ class googleDrive {
     if (!p_files || p_files.length < 1) return '';
 
     let cache = [];
-    // Cache the path and id of each level found
+    // Bulunan her düzeyin yolunu ve kimliğini (id) önbelleğe al
     p_files.forEach((value, idx) => {
       const is_folder = idx === 0 ? (p_files[idx].mimeType === CONSTS.folder_mime_type) : true;
       let path = '/' + p_files.slice(idx).map(it => it.name).reverse().join('/');
@@ -677,7 +677,7 @@ class googleDrive {
   }
 
 
-  // Get file item according to id
+  // Kimliğe (id) göre dosya öğesini al
   async findItemById(id) {
     const is_user_drive = this.root_type === CONSTS.gd_root_type.user_drive;
     let url = `https://www.googleapis.com/drive/v3/files/${id}?fields=${CONSTS.default_file_fields}${is_user_drive ? '' : '&supportsAllDrives=true'}`;
