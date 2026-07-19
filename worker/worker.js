@@ -1,6 +1,6 @@
 const authConfig = {
   "siteName": "TXDrive",
-  "siteIcon": "https://raw.githubusercontent.com/Rakipsizc/Google-Drive-Index/master/images/favicon.png",
+  "siteIcon": "https://medya.txtitanx.com/tx.ico",
   "version": "4.28",
   "client_id": typeof CLIENT_ID !== "undefined" ? CLIENT_ID : process.env.CLIENT_ID,
   "client_secret": typeof CLIENT_SECRET !== "undefined" ? CLIENT_SECRET : process.env.CLIENT_SECRET,
@@ -21,14 +21,8 @@ const authConfig = {
   "roots": [
     {
       id: "root", //you can use folderid other than root but then search wont work
-      name: "Personal Drive",
+      name: "TXDrive",
     },
-    {
-        id: "drive_id",
-        name: "Personal Drive II",
-        user: 'username',
-        pass: "password",
-      }  
   ],
 
   "files_list_page_size": 500,
@@ -45,9 +39,9 @@ const uiConfig = {
   "dark_mode": false,  // DO NOT set it to true, Not working yet
   "main_color": "blue-grey",
   "accent_color": "blue",
-  "fluid_navigation_bar": true,
+  "fluid_navigation_bar": false,
   "avatar": "",
-  "disable_navicon": true
+  "disable_navicon": false
 };
 
 /**
@@ -98,7 +92,7 @@ function html(current_drive_order = 0, model = {}) {
     window.current_drive_order = ${current_drive_order};
     window.UI = JSON.parse('${JSON.stringify(uiConfig)}');
   </script>
-  <script src="https://cdn.jsdelivr.net/gh/sawankumar/Google-Drive-Index@master/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Rakipsizc/Google-Drive-Index@master/app.js"></script>
 </head>
 <body>
 </body>
